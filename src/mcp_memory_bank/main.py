@@ -44,10 +44,106 @@ GUIDES = {
 }
 
 # Define a tool to get Memory Bank structure
-@mcp.tool()
-async def get_memory_bank_structure() -> str:
-    """Get a detailed description of the Memory Bank file structure."""
-    return GUIDES["structure"]
+def get_memory_bank_structure() -> str:
+    """
+    Get the current memory bank structure as a formatted string.
+    
+    Returns:
+        str: A formatted string showing the memory bank directory structure
+    """
+    # Embedded logging setup
+    memory_bank_path = Path("memory-bank")
+    memory_bank_path.mkdir(exist_ok=True)
+    
+    log_file = memory_bank_path / "Logs.log"
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=1024*1024, backupCount=1
+    )
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+    )
+    handler.setFormatter(formatter)
+    logger = logging.getLogger('memory_bank_structure')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    
+    # Get contributor ID
+    contributor_id = None
+    for env_var in ["GIT_AUTHOR_NAME", "USER", "USERNAME"]:
+        value = os.environ.get(env_var)
+        if value:
+            contributor_id = value.strip()
+            break
+    
+    if not contributor_id:
+        try:
+            result = subprocess.run(
+                ["git", "config", "user.name"], 
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                contributor_id = result.stdout.strip()
+        except:
+            pass
+    
+    if not contributor_id:
+        try:
+            contributor_id = f"user-{socket.gethostname()}"
+        except:
+            contributor_id = "unknown-user"
+    
+    # Generate timestamp
+    timestamp = f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')} [{contributor_id}]"
+    
+    # Log the operation
+    logger.info(f"🔍 Memory bank structure requested by {contributor_id}")
+    
+    # Build structure representation
+    def build_tree_structure(path: Path, prefix: str = "", max_depth: int = 3, current_depth: int = 0) -> str:
+        if current_depth > max_depth:
+            return ""
+        
+        items = []
+        if path.exists():
+            try:
+                for item in sorted(path.iterdir()):
+                    if item.name.startswith('.'):
+                        continue
+                    
+                    if item.is_dir():
+                        items.append(f"{prefix}📁 {item.name}/")
+                        if current_depth < max_depth:
+                            sub_items = build_tree_structure(
+                                item, prefix + "  ", max_depth, current_depth + 1
+                            )
+                            if sub_items:
+                                items.append(sub_items)
+                    else:
+                        items.append(f"{prefix}📄 {item.name}")
+            except PermissionError:
+                items.append(f"{prefix}❌ Permission denied")
+        
+        return "\n".join(items)
+    
+    structure = build_tree_structure(memory_bank_path)
+    
+    if not structure:
+        return f"""
+📂 Memory Bank Structure (Empty)
+Generated: {timestamp}
+
+The memory-bank directory exists but is empty.
+Use 'create_memory_bank_structure' to initialize it.
+"""
+    
+    return f"""
+📂 Memory Bank Structure
+Generated: {timestamp}
+
+{structure}
+
+Total files: {len(list(memory_bank_path.rglob('*'))) if memory_bank_path.exists() else 0}
+"""
 
 # Define a tool to generate Memory Bank template
 @mcp.tool()

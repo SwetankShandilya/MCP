@@ -1,3 +1,89 @@
+"""
+Memory Bank MCP Server - Main Module
+
+A comprehensive memory bank system for AI assistants using the Model Context Protocol (MCP).
+This server provides tools for creating, managing, and maintaining project memory banks
+that help AI assistants understand project context, track changes, and make informed decisions.
+
+Key Features:
+- Intelligent context management with automatic project analysis
+- Structured memory bank creation with organized file templates
+- Change tracking and decision logging for project evolution
+- Multi-contributor support with collaborative timestamps
+- Smart file routing based on content analysis
+"""
+
+# ============================================================================
+# IMPORTS & DEPENDENCIES
+# ============================================================================
+
+from mcp.server.fastmcp import FastMCP
+from datetime import datetime, timezone, timedelta
+from typing import List
+from pathlib import Path
+import os
+import subprocess
+import socket
+import logging
+import logging.handlers
+
+# ============================================================================
+# GLOBAL STATE & SESSION MANAGEMENT
+# ============================================================================
+
+# Session data for tracking contributor information across tool calls
+_session_data = {
+    "contributor_id": None,  # Current contributor identifier
+    "initialized": False     # Whether session has been initialized
+}
+
+
+# ============================================================================
+# LOGGING SETUP & CONFIGURATION
+# ============================================================================
+
+def setup_logging():
+    """Setup rotating log file system for the MCP server.
+    
+    Creates a rotating log file in the memory-bank directory with:
+    - 1MB maximum file size
+    - 1 backup file (2MB total log storage)
+    - Structured log format with timestamps and function names
+    - INFO level logging for operational visibility
+    
+    Returns:
+        logging.Logger: Configured logger instance for the MCP server
+    """
+    # Ensure memory-bank directory exists for log file
+    memory_bank_path = Path("memory-bank")
+    memory_bank_path.mkdir(exist_ok=True)
+    
+    log_file = memory_bank_path / "Logs.log"
+    
+    # Configure rotating file handler to prevent log files from growing too large
+    handler = logging.handlers.RotatingFileHandler(
+        log_file, maxBytes=1024*1024, backupCount=1
+    )
+    
+    # Structured log format for better debugging and monitoring
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+    )
+    handler.setFormatter(formatter)
+    
+    # Create and configure logger instance
+    logger = logging.getLogger('memory_bank')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    
+    return logger
+
+
+# Initialize logger instance
+logger = setup_logging()
+
+
+
 from mcp.server.fastmcp import FastMCP
 
 from mcp_memory_bank.templates.memory_bank_instructions import TEMPLATE as MEMORY_BANK_INSTRUCTIONS_TEMPLATE

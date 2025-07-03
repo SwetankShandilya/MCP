@@ -44,6 +44,7 @@ GUIDES = {
 }
 
 # Define a tool to get Memory Bank structure
+@mcp.tool()
 def get_memory_bank_structure() -> str:
     """
     Get the current memory bank structure as a formatted string.

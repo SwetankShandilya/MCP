@@ -1,0 +1,30 @@
+[project]
+name = "mcp_memory_bank"
+version = "0.1.0"
+description = "Memory Bank helper for AI assistant"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+[project.optional-dependencies]
+server = [
+    "httpx",
+    "uvicorn",
+    "starlette",
+]
+all = [
+    "httpx",
+    "uvicorn",
+    "starlette",
+]
+
+[project.scripts]
+mcp_memory_bank = "mcp_memory_bank.main:main"
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"

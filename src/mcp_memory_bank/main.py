@@ -1,3 +1,9 @@
+from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("memory-bank-helper")
+
+
+
+
 """
 Memory Bank MCP Server - Main Module
 
@@ -84,7 +90,7 @@ logger = setup_logging()
 
 
 
-from mcp.server.fastmcp import FastMCP
+
 
 from mcp_memory_bank.templates.memory_bank_instructions import TEMPLATE as MEMORY_BANK_INSTRUCTIONS_TEMPLATE
 from mcp_memory_bank.templates.projectbrief import TEMPLATE as PROJECTBRIEF_TEMPLATE
@@ -99,7 +105,7 @@ from mcp_memory_bank.guides.usage import GUIDE as USAGE_GUIDE
 from mcp_memory_bank.guides.benefits import GUIDE as BENEFITS_GUIDE
 from mcp_memory_bank.guides.structure import GUIDE as STRUCTURE_GUIDE
 
-mcp = FastMCP("memory-bank-helper")
+
 
 TEMPLATES = {
     "memory_bank_instructions.md": MEMORY_BANK_INSTRUCTIONS_TEMPLATE,

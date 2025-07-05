@@ -37,6 +37,37 @@ from .guides.setup import GUIDE as SETUP_GUIDE
 
 mcp = FastMCP("memory-bank-helper")
 
+# ============================================================================
+# MIDDLEWARE INTEGRATION
+# ============================================================================
+
+# Import FastMCP middleware classes
+from .middlewares import (
+    ContextAwarePromptInjectionMiddleware,
+    ToolLoggingMiddleware,
+    MemoryCompletenessEnforcementMiddleware,
+    CrossReferenceRedundancyMiddleware,
+    AgentBehaviorProfilerMiddleware
+)
+
+# Initialize and add middleware instances to the FastMCP server
+context_middleware = ContextAwarePromptInjectionMiddleware()
+logging_middleware = ToolLoggingMiddleware()
+completeness_middleware = MemoryCompletenessEnforcementMiddleware()
+redundancy_middleware = CrossReferenceRedundancyMiddleware()
+profiler_middleware = AgentBehaviorProfilerMiddleware()
+
+# Add middleware to the FastMCP server
+mcp.add_middleware(context_middleware)
+mcp.add_middleware(logging_middleware)
+mcp.add_middleware(completeness_middleware)
+mcp.add_middleware(redundancy_middleware)
+mcp.add_middleware(profiler_middleware)
+
+# ============================================================================
+# TEMPLATES AND GUIDES
+# ============================================================================
+
 TEMPLATES = {
     "memory_bank_instructions.md": MEMORY_BANK_INSTRUCTIONS,
     "overview.md": OVERVIEW_TEMPLATE,
@@ -419,8 +450,8 @@ def intelligent_context_executor(user_query: str = "") -> str:
             path_words = set(str(file_path).lower().replace('/', ' ').replace('_', ' ').split())
             score += len(query_words.intersection(path_words)) * 2
             
-            # Score based on content relevance (first 300 chars)
-            content_words = set(content.lower()[:300].split())
+            # Score based on content relevance (first 500 chars)
+            content_words = set(content.lower()[:500].split())
             score += len(query_words.intersection(content_words))
             
             return score
@@ -464,7 +495,7 @@ def intelligent_context_executor(user_query: str = "") -> str:
             tool_suggestions.append("🛠️ suggest_files_to_update - Get file update suggestions")
         
         if any(word in query_lower for word in ['route', 'organize', 'structure']):
-            tool_suggestions.append("🛠️ smart_project_analysis_and_routing - Analyze and route content")
+            tool_suggestions.append("🛠️ smart_content_analysis_and_routing - Analyze and route content")
         
         if any(word in query_lower for word in ['detect', 'changes', 'diff']):
             tool_suggestions.append("🛠️ auto_detect_project_changes - Detect project changes")
@@ -475,7 +506,7 @@ def intelligent_context_executor(user_query: str = "") -> str:
                 "🛠️ generate_memory_bank_template - Create new template files",
                 "🛠️ analyze_project_summary - Analyze project information",
                 "🛠️ suggest_files_to_update - Get file update suggestions",
-                "🛠️ smart_project_analysis_and_routing - Analyze and route content"
+                "🛠️ smart_content_analysis_and_routing - Analyze and route content"
             ]
         
         return tool_suggestions
@@ -1239,7 +1270,7 @@ Analyst: {contributor_id}
 
 
 @mcp.tool()                 
-def smart_project_analysis_and_routing(input_content: str = "") -> str:
+def smart_content_analysis_and_routing(input_content: str = "") -> str:
     """
     Smart project analysis and routing for content organization.
     
@@ -1653,7 +1684,7 @@ def auto_detect_project_changes() -> str:
             if file_path.is_file() and not file_path.name.startswith('.'):
                 try:
                     mod_time = file_path.stat().st_mtime
-                    if current_time - mod_time < 86400:  # 24 hours
+                    if current_time - mod_time < 28800:  # 8 hours
                         file_changes['recent_files'].append(str(file_path))
                 except:
                     continue

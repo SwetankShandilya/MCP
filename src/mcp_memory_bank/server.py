@@ -16,21 +16,21 @@ import logging
 import logging.handlers
 
 
-# from .middlewares import (
-#     ContextAwarePromptInjectionMiddleware,
-#     ToolLoggingMiddleware,
-#     MemoryCompletenessEnforcementMiddleware,
-#     CrossReferenceRedundancyMiddleware,
-#     AgentBehaviorProfilerMiddleware
-# )
+from .middlewares import (
+    ContextAwarePromptInjectionMiddleware,
+    ToolLoggingMiddleware,
+    MemoryCompletenessEnforcementMiddleware,
+    CrossReferenceRedundancyMiddleware,
+    AgentBehaviorProfilerMiddleware
+)
 
 mcp = FastMCP("memory-bank-helper")
 
-# mcp.add_middleware(ContextAwarePromptInjectionMiddleware())
-# mcp.add_middleware(ToolLoggingMiddleware())
-# mcp.add_middleware(MemoryCompletenessEnforcementMiddleware())
-# mcp.add_middleware(CrossReferenceRedundancyMiddleware())
-# mcp.add_middleware(AgentBehaviorProfilerMiddleware())
+mcp.add_middleware(ContextAwarePromptInjectionMiddleware())
+mcp.add_middleware(ToolLoggingMiddleware())
+mcp.add_middleware(MemoryCompletenessEnforcementMiddleware())
+mcp.add_middleware(CrossReferenceRedundancyMiddleware())
+mcp.add_middleware(AgentBehaviorProfilerMiddleware())
 
 
 
@@ -1825,7 +1825,7 @@ async def memory_bank_guide(section: str) -> tuple[str, str]:
 
 def main():
     """Main entry point for the MCP server."""
-    mcp.run()
+    mcp.run(transport='sse')
 
 if __name__ == "__main__":
     main()

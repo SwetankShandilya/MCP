@@ -1825,7 +1825,7 @@ async def memory_bank_guide(section: str) -> tuple[str, str]:
 
 def main():
     """Main entry point for the MCP server."""
-    mcp.run(transport='sse')
+    mcp.run(transport='stdio')
 
 if __name__ == "__main__":
     main()

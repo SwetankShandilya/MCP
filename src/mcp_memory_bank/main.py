@@ -1,105 +1,58 @@
 """
-Memory Bank MCP Server
+Memory Bank MCP Server - Main Composition
 
-This module provides the main entry point for the Memory Bank MCP server,
-importing tools and middlewares from their respective modules.
+A comprehensive Model Context Protocol (MCP) server for intelligent project memory management.
+This server follows FastMCP 2.0 composition patterns by mounting modular subservers.
+
+FastMCP 2.0 Composition Structure:
+- Main server mounts tools and middleware subservers
+- Uses live linking for dynamic updates
+- Follows modular architecture patterns from FastMCP documentation
 """
 
 import asyncio
 import logging
-import sys
-from pathlib import Path
+from fastmcp import FastMCP
 
-# Import the FastMCP instance and all tools from tools.py
-from .tools import mcp
+# Import modular subservers
+from .tools import tools_server
+from .middleware_server import middleware_server
 
-# Import middleware classes from middlewares.py
-from .middlewares import (
-    ContextAwarePromptInjectionMiddleware,
-    ToolLoggingMiddleware,
-    MemoryCompletenessEnforcementMiddleware,
-    CrossReferenceRedundancyMiddleware,
-    AgentBehaviorProfilerMiddleware
-)
+# Create main server instance
+mcp = FastMCP(name="Memory Bank MCP Server")
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-def setup_logging():
-    """Setup logging for the main server"""
-    memory_bank_path = Path("memory-bank")
-    memory_bank_path.mkdir(exist_ok=True)
+async def setup_composition():
+    """
+    Setup server composition using FastMCP mounting patterns.
+    This follows the documentation at: https://gofastmcp.com/servers/composition#mounting-live-linking
+    """
+    logger.info("Setting up FastMCP server composition...")
     
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler(memory_bank_path / "server.log")
-        ]
-    )
-
-
-def register_middlewares():
-    """Register all middleware classes with the FastMCP instance"""
-    logger = logging.getLogger(__name__)
+    # Mount the tools server using live linking (no prefix - components keep original names)
+    # This creates a live link where changes to tools_server are immediately reflected
+    mcp.mount(tools_server)
+    logger.info("Mounted tools server with live linking")
     
-    try:
-        # Register middleware classes
-        middlewares = [
-            ContextAwarePromptInjectionMiddleware(),
-            ToolLoggingMiddleware(),
-            MemoryCompletenessEnforcementMiddleware(),
-            CrossReferenceRedundancyMiddleware(),
-            AgentBehaviorProfilerMiddleware()
-        ]
-        
-        for middleware in middlewares:
-            mcp.add_middleware(middleware)
-            logger.info(f"Registered middleware: {middleware.__class__.__name__}")
-        
-        logger.info(f"Successfully registered {len(middlewares)} middleware classes")
-        
-    except Exception as e:
-        logger.error(f"Failed to register middlewares: {str(e)}")
-        raise
-
-
-def main():
-    """Main entry point for the Memory Bank MCP server"""
-    setup_logging()
-    logger = logging.getLogger(__name__)
+    # Mount the middleware server using live linking
+    # Middleware will be applied to all requests through the main server
+    mcp.mount(middleware_server)
+    logger.info("Mounted middleware server with live linking")
     
-    logger.info("Starting Memory Bank MCP Server")
-    
-    try:
-        # Register middlewares
-        register_middlewares()
-        
-        # The FastMCP instance (mcp) is already configured with all tools in tools.py
-        # All tools are automatically registered when the tools.py module is imported
-        
-        logger.info("Memory Bank MCP Server initialized successfully")
-        logger.info("All tools and middlewares are registered and ready")
-        
-        # Return the configured FastMCP instance
-        return mcp
-        
-    except Exception as e:
-        logger.error(f"Failed to initialize Memory Bank MCP Server: {str(e)}")
-        raise
+    logger.info("FastMCP server composition setup complete")
 
 
-# For direct execution
+async def main():
+    """Main entry point for the composed server"""
+    await setup_composition()
+    return mcp
+
+
 if __name__ == "__main__":
-    try:
-        server = main()
-        # Run the server
-        asyncio.run(server.run())
-    except KeyboardInterrupt:
-        print("\nServer stopped by user")
-    except Exception as e:
-        print(f"Server error: {e}")
-        sys.exit(1)
-
-
-# Export the configured FastMCP instance for use by MCP clients
-__all__ = ['mcp', 'main']
+    # Setup composition and run the server
+    asyncio.run(setup_composition())
+    mcp.run()

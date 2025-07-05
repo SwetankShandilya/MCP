@@ -23,7 +23,7 @@ all = [
 ]
 
 [project.scripts]
-mcp_memory_bank = "mcp_memory_bank.main:main"
+mcp_memory_bank = "mcp_memory_bank.server:main"
 
 [build-system]
 requires = ["uv_build"]

@@ -8,10 +8,10 @@ a structured memory bank of project knowledge.
 FastMCP 2.0 compatible package structure.
 """
 
-from .main import mcp
+from .server import mcp, main
 
 # Export the main server instance for FastMCP CLI discovery
-__all__ = ["mcp"]
+__all__ = ["mcp", "main"]
 
 # Package metadata
 __version__ = "1.0.0"

@@ -23,7 +23,6 @@ from typing import Any, Dict, List, Optional, Set
 
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
-
 class ContextAwarePromptInjectionMiddleware(Middleware):
     """
     Middleware that injects context-aware prompts after technical tools are used.
